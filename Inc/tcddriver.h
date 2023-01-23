@@ -1,4 +1,4 @@
-#include "main.h"
+#include "tim.h"
 #define sclk htim3
 #define basetick_period 500 // 500ns
 #define t1 5000 // 500ns 
@@ -11,12 +11,10 @@
 
 #define scanstop HAL_TIM_Base_Stop_IT(&sclk)
 
-
-
 #define sh_iogroup GPIOA
 #define sh_io GPIO_PIN_5
 #define icg_iogroup GPIOA
 #define icg_io GPIO_PIN_7
 
+extern int32_t basetick;
 void pwmgenerate();
-extern int32_t

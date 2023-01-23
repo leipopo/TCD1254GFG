@@ -31,6 +31,9 @@
             "name": "User",
             "files": [
               {
+                "path": "Src/adc.c"
+              },
+              {
                 "path": "Src/dma.c"
               },
               {
@@ -44,6 +47,12 @@
               },
               {
                 "path": "Src/stm32f1xx_it.c"
+              },
+              {
+                "path": "Src/system_stm32f1xx.c"
+              },
+              {
+                "path": "Src/tcddriver.c"
               },
               {
                 "path": "Src/tim.c"
@@ -67,10 +76,10 @@
                 "path": "Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_gpio_ex.c"
               },
               {
-                "path": "Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_tim.c"
+                "path": "Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_adc.c"
               },
               {
-                "path": "Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_tim_ex.c"
+                "path": "Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_adc_ex.c"
               },
               {
                 "path": "Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal.c"
@@ -103,6 +112,12 @@
                 "path": "Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_exti.c"
               },
               {
+                "path": "Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_tim.c"
+              },
+              {
+                "path": "Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_tim_ex.c"
+              },
+              {
                 "path": "Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_uart.c"
               }
             ],
@@ -122,10 +137,10 @@
     ]
   },
   "outDir": "build",
-  "deviceName": null,
-  "packDir": null,
+  "deviceName": "STM32F103ZE",
+  "packDir": ".pack/Keil/STM32F1xx_DFP.2.3.0",
   "miscInfo": {
-    "uid": "05a5c8096f663a326c23102233a57667"
+    "uid": "b024cc274f6f02adfb38ff13c5170a07"
   },
   "targets": {
     "TCD1254GFG": {
@@ -244,19 +259,31 @@
         },
         "options": "null"
       },
-      "uploader": "JLink",
+      "uploader": "STLink",
       "uploadConfig": {
         "bin": "",
-        "baseAddr": "",
-        "cpuInfo": {
-          "vendor": "null",
-          "cpuName": "null"
-        },
-        "proType": 1,
-        "speed": 8000,
+        "proType": "SWD",
+        "resetMode": "default",
+        "runAfterProgram": true,
+        "speed": 4000,
+        "address": "0x8000000",
+        "elFile": "None",
+        "optionBytes": ".eide/tcd1254gfg.st.option.bytes.ini",
         "otherCmds": ""
       },
-      "uploadConfigMap": {},
+      "uploadConfigMap": {
+        "JLink": {
+          "bin": "",
+          "baseAddr": "",
+          "cpuInfo": {
+            "vendor": "null",
+            "cpuName": "null"
+          },
+          "proType": 1,
+          "speed": 8000,
+          "otherCmds": ""
+        }
+      },
       "custom_dep": {
         "name": "default",
         "incList": [
@@ -265,7 +292,6 @@
           "Drivers/STM32F1xx_HAL_Driver/Inc/Legacy",
           "Drivers/CMSIS/Device/ST/STM32F1xx/Include",
           "Drivers/CMSIS/Include",
-          ".cmsis/include",
           "MDK-ARM/RTE/_TCD1254GFG",
           ".eide/deps"
         ],
@@ -273,7 +299,8 @@
         "sourceDirList": [],
         "defineList": [
           "USE_HAL_DRIVER",
-          "STM32F103xE"
+          "STM32F103xE",
+          "STM32F10X_HD"
         ]
       }
     }
