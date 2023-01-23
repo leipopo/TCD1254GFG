@@ -22,7 +22,6 @@ void delay_ns(int16_t ns)
     }
 }
 
-
 int32_t basetick;
 void pwmgenerate()
 {
@@ -32,8 +31,9 @@ void pwmgenerate()
     } else if ((basetick * basetick_period % t3 == 0) && (basetick <= 2547))//一个读取周期里，计数M_io的pwm周期次数来反转sh_io实现同步
      {
         HAL_GPIO_TogglePin(sh_iogroup, sh_io);
-    } else if (basetick > 2547) //此时sh_io已经被拉低1000ns后被拉高，可以在此时拉低icg_io
+    } else if (basetick > 2547) //此时sh_io已经被拉低且满足1000ns后被拉高，可以在此时拉低icg_io
     {
+        delay_ns(1000-t2);//确保timing满足t2
         HAL_GPIO_WritePin(icg_iogroup, icg_io, GPIO_PIN_RESET);
         scanstop;
     }
