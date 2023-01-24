@@ -46,7 +46,8 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
-
+tcddata tcdd;
+float os_V_V_proportion;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -59,7 +60,7 @@ void SystemClock_Config(void);
 /* USER CODE BEGIN 0 */
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
-    pwmgenerate();
+    TCD_RW(&tcdd,os_V_V_proportion);
 }
 /* USER CODE END 0 */
 
@@ -95,7 +96,7 @@ int main(void)
   MX_USART2_UART_Init();
   MX_ADC1_Init();
   /* USER CODE BEGIN 2 */
-
+  os_V_V_proportion = init_vrefint_reciprocal();
 
   /* USER CODE END 2 */
 
@@ -103,7 +104,8 @@ int main(void)
   /* USER CODE BEGIN WHILE */
     while (1) {
     /* USER CODE END WHILE */
-
+    HAL_Delay(mastertick_period*40*10*2550/1000/1000);
+    scanstart();
     /* USER CODE BEGIN 3 */
     }
   /* USER CODE END 3 */
