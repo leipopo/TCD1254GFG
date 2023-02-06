@@ -19,9 +19,7 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "adc.h"
-#include "dma.h"
 #include "tim.h"
-#include "usart.h"
 #include "gpio.h"
 
 /* Private includes ----------------------------------------------------------*/
@@ -91,9 +89,7 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
-  MX_DMA_Init();
   MX_TIM3_Init();
-  MX_USART2_UART_Init();
   MX_ADC1_Init();
   /* USER CODE BEGIN 2 */
   os_V_V_proportion = init_vrefint_reciprocal();
@@ -104,8 +100,7 @@ int main(void)
   /* USER CODE BEGIN WHILE */
     while (1) {
     /* USER CODE END WHILE */
-    HAL_Delay(mastertick_period*40*10*2550/1000/1000);
-    scanstart();
+
     /* USER CODE BEGIN 3 */
     }
   /* USER CODE END 3 */
