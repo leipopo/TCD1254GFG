@@ -11,7 +11,11 @@ void scanstart(tcddata *t)
 
 static void scanstop(tcddata *t)
 {
+    HAL_GPIO_WritePin(icg_iogroup, icg_io, GPIO_PIN_RESET);
+    delay_ns(t2);
+    t->sh_tick  = 0;
     t->switcher = false;
+    delay_ns(t3);
 }
 
 /*
@@ -23,7 +27,7 @@ ARM CortexM3 标称指令速度1.25MIPS/MHz
 所以延时ns纳秒需要执行ns/(10^9/(1.25*72*10^6))条指令
 然后向下取整
 */
-static void delay_ns(int16_t ns)
+void delay_ns(int16_t ns)
 {
     int32_t mcufreq = HAL_RCC_GetSysClockFreq();
     ns              = (int32_t)((float)ns * (float)mcufreq) * 1.25f / (1000000000.f);
@@ -33,7 +37,7 @@ static void delay_ns(int16_t ns)
 }
 
 /*
-此函数使用电子快门模式，通过定时器中断计数并反转io形成PWM脉冲实现三路PWM所要求timing,并在规定的sh周期读取os信号
+此函数使用sh，通过定时器中断计数并反转io形成PWM脉冲实现三路PWM所要求timing,并在规定的sh周期读取os信号
 */
 
 void TCD_RW(tcddata *t, float os_vvp)
@@ -45,30 +49,22 @@ void TCD_RW(tcddata *t, float os_vvp)
         t->master_tick++;
     }
 
-    if ((t->switcher == true) && (t->sh_tick == 1) && ((t->master_tick - 20) % 40 == 0)) // 在满足t1条件下拉高icg开始一个读取周期
-    {
-        delay_ns(mastertick_period / 2 - t4);// 在满足t4条件下拉高icg开始一个读取周期
-        HAL_GPIO_WritePin(icg_iogroup, icg_io, GPIO_PIN_SET); 
-    }
-
-    if ((t->master_tick + 10) % 40 == 0) {
-        HAL_GPIO_WritePin(sh_iogroup, sh_io, GPIO_PIN_SET);
+    if (t->master_tick % 2 == 0) {
         if (t->switcher == true) {
+            t->voltage[t->sh_tick] = get_os_signal(os_vvp); // 读取os信号
             t->sh_tick++;
+            HAL_GPIO_WritePin(sh_iogroup, sh_io, GPIO_PIN_RESET);
         }
-    } else if (t->master_tick % 40 == 0) {
-        HAL_GPIO_WritePin(sh_iogroup, sh_io, GPIO_PIN_RESET);
-    } // sh周期低电平持续30个master周期，高电平持续10个master周期，故每40个master周期切换一次
+    } // 拉低sh开始一个读取周期
 
-    if (t->sh_tick > 31+1 && t->sh_tick < 2532+1) // os输出区间为32+1--2532+1共2500个sh周期，故在此区间内读取os信号
+    if ((t->switcher == true) && (t->sh_tick == 1) && ((t->master_tick - 2) % 40 == 0)) // 在满足t1条件下拉高icg开始一个读取周期
     {
-        t->voltage[t->sh_tick - 33] = get_os_signal(os_vvp);
+        delay_ns(mastertick_period / 2 - t4); // 在满足t4条件下拉高icg开始一个读取周期
+        HAL_GPIO_WritePin(icg_iogroup, icg_io, GPIO_PIN_SET);
     }
 
-    if(t->sh_tick > 2532+1&&((t->master_tick - 11) % 40 == 0))//满足t2条件下拉低icg结束一个读取周期
+    if (t->sh_tick > 2532 + 1 && ((t->master_tick - 11) % 40 == 0)) // 满足t2条件下拉低icg并上拉sh结束一个读取周期
     {
-        HAL_GPIO_WritePin(icg_iogroup, icg_io, GPIO_PIN_RESET);
-        t->sh_tick = 0;
         scanstop(t);
     }
 }
