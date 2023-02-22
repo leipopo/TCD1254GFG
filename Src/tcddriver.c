@@ -4,16 +4,14 @@
 此驱动将发生tcd需要的三路PWM并将OS信号进行AD转换
 */
 
-void scanstart(void)
+void scanstart(tcddata *t)
 {
-    HAL_GPIO_WritePin(sh_iogroup, sh_io, GPIO_PIN_RESET);
-    HAL_GPIO_WritePin(icg_iogroup, icg_io, GPIO_PIN_RESET);
-    HAL_TIM_Base_Start_IT(&sclk);
+    t->switcher = true;
 }
 
-static void scanstop(void)
+static void scanstop(tcddata *t)
 {
-    HAL_TIM_Base_Stop_IT(&sclk);
+    t->switcher = false;
 }
 
 /*
@@ -35,44 +33,49 @@ static void delay_ns(int16_t ns)
 }
 
 /*
-此函数通过定时器中断计数并反转io形成PWM脉冲实现三路PWM所要求的百纳秒级timing,并在规定的sh周期读取os信号
+此函数使用电子快门模式，通过定时器中断计数并反转io形成PWM脉冲实现三路PWM所要求timing,并在规定的sh周期读取os信号
 */
 
-void TCD_RW(tcddata *t,float os_vvp)
+void TCD_RW(tcddata *t, float os_vvp)
 {
-    if (t->sh_tick == 0 && t->master_tick == 0) {
-        delay_ns(mastertick_period / 2 - t4);
-        HAL_GPIO_WritePin(icg_iogroup, icg_io, GPIO_PIN_SET);//拉高icg开始一个读取周期
+
+    if (t->master_tick == 0xffffffff) {
+        t->master_tick = 0;
+    } else {
+        t->master_tick++;
+    }
+
+    if ((t->switcher == true) && (t->sh_tick == 1) && ((t->master_tick - 20) % 40 == 0)) // 在满足t1条件下拉高icg开始一个读取周期
+    {
+        delay_ns(mastertick_period / 2 - t4);// 在满足t4条件下拉高icg开始一个读取周期
+        HAL_GPIO_WritePin(icg_iogroup, icg_io, GPIO_PIN_SET); 
     }
 
     if ((t->master_tick + 10) % 40 == 0) {
         HAL_GPIO_WritePin(sh_iogroup, sh_io, GPIO_PIN_SET);
-    } else if (t->master_tick % 40 == 20) {
+        if (t->switcher == true) {
+            t->sh_tick++;
+        }
+    } else if (t->master_tick % 40 == 0) {
         HAL_GPIO_WritePin(sh_iogroup, sh_io, GPIO_PIN_RESET);
-        t->sh_tick++;
-    }//sh周期低电平持续30个master周期，高电平持续10个master周期，故每40个master周期切换一次
+    } // sh周期低电平持续30个master周期，高电平持续10个master周期，故每40个master周期切换一次
 
-    if (t->sh_tick > 32 && t->sh_tick < 2533) // os输出区间为33--2532共2500个sh周期，故在此区间内读取os信号
+    if (t->sh_tick > 31+1 && t->sh_tick < 2532+1) // os输出区间为32+1--2532+1共2500个sh周期，故在此区间内读取os信号
     {
-        t->voltage[t->sh_tick - 32] = get_os_signal(os_vvp);
+        t->voltage[t->sh_tick - 33] = get_os_signal(os_vvp);
     }
-    t->master_tick++;
 
-    if (t->sh_tick > 2560) // 2547个sh周期时即读取完毕，但此时sh在高电平按手册要求需在sh上升至高电平前100ns--1000ns内拉低icg结束读取，故继续运行至此2547周期结束拉低icg
+    if(t->sh_tick > 2532+1&&((t->master_tick - 11) % 40 == 0))//满足t2条件下拉低icg结束一个读取周期
     {
-        t->sh_tick     = 0;
-        t->master_tick = 0;
-        delay_ns(t2);
         HAL_GPIO_WritePin(icg_iogroup, icg_io, GPIO_PIN_RESET);
-        HAL_GPIO_WritePin(sh_iogroup, sh_io, GPIO_PIN_RESET);
-        scanstop();
+        t->sh_tick = 0;
+        scanstop(t);
     }
 }
 
 /*
 此函数为对内部参考电压电压 VREFINT 进行 adc 采样将其作为校准值
 */
-
 float init_vrefint_reciprocal(void)
 {
     uint8_t i          = 0;
@@ -95,12 +98,11 @@ static float get_os_signal(float voltage_vrefint_proportion)
 static uint16_t adcx_get_chx_value(ADC_HandleTypeDef *ADCx, uint32_t ch)
 {
     static ADC_ChannelConfTypeDef sConfig = {0};
-    sConfig.Channel = ch;
-    sConfig.Rank = 1;
-    sConfig.SamplingTime = ADC_SAMPLETIME_1CYCLE_5;
+    sConfig.Channel                       = ch;
+    sConfig.Rank                          = 1;
+    sConfig.SamplingTime                  = ADC_SAMPLETIME_1CYCLE_5;
 
-    if (HAL_ADC_ConfigChannel(ADCx, &sConfig) != HAL_OK)
-    {
+    if (HAL_ADC_ConfigChannel(ADCx, &sConfig) != HAL_OK) {
         Error_Handler();
     }
 
@@ -108,5 +110,4 @@ static uint16_t adcx_get_chx_value(ADC_HandleTypeDef *ADCx, uint32_t ch)
 
     HAL_ADC_PollForConversion(ADCx, 10);
     return (uint16_t)HAL_ADC_GetValue(ADCx);
-
 }

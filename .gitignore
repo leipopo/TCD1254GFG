@@ -9,9 +9,13 @@
 /bin
 /obj
 /out
-
+MDK-ARM/TCD1254GFG/
+*.o
+*.d
+*.crf
 # eide template
 *.ept
 *.eide-template
+
 
 /Backup

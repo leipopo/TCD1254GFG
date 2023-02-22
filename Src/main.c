@@ -58,7 +58,12 @@ void SystemClock_Config(void);
 /* USER CODE BEGIN 0 */
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
-    TCD_RW(&tcdd,os_V_V_proportion);
+    TCD_RW(&tcdd, os_V_V_proportion);
+}
+
+void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
+{
+	scanstart(&tcdd);
 }
 /* USER CODE END 0 */
 
@@ -92,16 +97,19 @@ int main(void)
   MX_TIM3_Init();
   MX_ADC1_Init();
   /* USER CODE BEGIN 2 */
-  os_V_V_proportion = init_vrefint_reciprocal();
-
+    os_V_V_proportion = init_vrefint_reciprocal();
+    HAL_TIM_Base_Start_IT(&sclk);
+    HAL_TIM_PWM_Start(&sclk, TIM_CHANNEL_1);
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
     while (1) {
+    
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
+        //HAL_Delay(50);
     }
   /* USER CODE END 3 */
 }
