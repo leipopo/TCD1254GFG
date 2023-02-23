@@ -4,20 +4,6 @@
 此驱动将发生tcd需要的三路PWM并将OS信号进行AD转换
 */
 
-void scanstart(tcddata *t)
-{
-    t->switcher = true;
-}
-
-static void scanstop(tcddata *t)
-{
-    HAL_GPIO_WritePin(icg_iogroup, icg_io, GPIO_PIN_RESET);
-    delay_ns(t2);
-    t->sh_tick  = 0;
-    t->switcher = false;
-    delay_ns(t3);
-}
-
 /*
 此函数通过空指令循环来延时ns纳秒
 ARM CortexM3 标称指令速度1.25MIPS/MHz
@@ -36,6 +22,23 @@ void delay_ns(int16_t ns)
     }
 }
 
+void scanstart(tcddata *t)
+{
+    t->switcher = true;
+}
+
+static void scanstop(tcddata *t)
+{
+    HAL_GPIO_WritePin(icg_iogroup, icg_io, GPIO_PIN_RESET);
+    delay_ns(t2);
+    HAL_GPIO_WritePin(sh_iogroup, sh_io, GPIO_PIN_SET);
+    t->sh_tick  = 0;
+    t->switcher = false;
+    delay_ns(t3*2);
+}
+
+
+
 /*
 此函数使用sh，通过定时器中断计数并反转io形成PWM脉冲实现三路PWM所要求timing,并在规定的sh周期读取os信号
 */
@@ -49,21 +52,25 @@ void TCD_RW(tcddata *t, float os_vvp)
         t->master_tick++;
     }
 
-    if (t->master_tick % 2 == 0) {
-        if (t->switcher == true) {
-            t->voltage[t->sh_tick] = get_os_signal(os_vvp); // 读取os信号
-            t->sh_tick++;
-            HAL_GPIO_WritePin(sh_iogroup, sh_io, GPIO_PIN_RESET);
-        }
-    } // 拉低sh开始一个读取周期
-
-    if ((t->switcher == true) && (t->sh_tick == 1) && ((t->master_tick - 2) % 40 == 0)) // 在满足t1条件下拉高icg开始一个读取周期
+    if ((t->switcher == true) && (t->sh_tick == 2)) // 在满足t1条件下拉高icg开始一个读取周期
     {
         delay_ns(mastertick_period / 2 - t4); // 在满足t4条件下拉高icg开始一个读取周期
         HAL_GPIO_WritePin(icg_iogroup, icg_io, GPIO_PIN_SET);
     }
 
-    if (t->sh_tick > 2532 + 1 && ((t->master_tick - 11) % 40 == 0)) // 满足t2条件下拉低icg并上拉sh结束一个读取周期
+    if (t->master_tick % 2 == 0) {
+        if (t->switcher == true) {
+            if (t->sh_tick > 1) {
+                t->voltage[t->sh_tick - 2] = get_os_signal(os_vvp); // 读取os信号
+            }
+            t->sh_tick++;
+            if (t->sh_tick == 0) {
+                HAL_GPIO_WritePin(sh_iogroup, sh_io, GPIO_PIN_RESET);
+            }
+        }
+    } // 拉低sh开始一个读取周期
+
+    if (t->sh_tick > 2547 + 1) // 满足t2条件下拉低icg并上拉sh结束一个读取周期
     {
         scanstop(t);
     }

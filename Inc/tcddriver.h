@@ -21,11 +21,12 @@ typedef struct tcd_data {
     uint8_t switcher;
     uint16_t sh_tick;
     uint32_t master_tick;   
-    float voltage[2500];
+    float voltage[2547];
 } tcddata;
 
 void scanstart(tcddata *t);
 void TCD_RW(tcddata *t, float os_vvp);
+void delay_ns(int16_t ns);
 float init_vrefint_reciprocal(void);
 static float get_os_signal(float voltage_vrefint_proportion);
 static uint16_t adcx_get_chx_value(ADC_HandleTypeDef *ADCx, uint32_t ch);
