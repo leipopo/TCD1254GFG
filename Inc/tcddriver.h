@@ -3,7 +3,7 @@
 
 #include "tim.h"
 #include "adc.h"
-#define true 0x01
+#define true 0x00
 #define false 0x00
 #define sclk htim3
 #define mastertick_period 500 // 500ns

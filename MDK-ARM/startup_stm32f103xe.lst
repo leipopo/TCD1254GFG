@@ -558,11 +558,11 @@ ARM Macro Assembler    Page 9
               00000000 
 Command Line: --debug --xref --diag_suppress=9931 --cpu=Cortex-M3 --apcs=interw
 ork --depend=tcd1254gfg\startup_stm32f103xe.d -otcd1254gfg\startup_stm32f103xe.
-o -I.\RTE\_TCD1254GFG -IC:\Users\94736\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\
-CMSIS\Core\Include -IC:\Users\94736\AppData\Local\Arm\Packs\Keil\STM32F1xx_DFP\
-1.0.5\Device\Include --predefine="__UVISION_VERSION SETA 537" --predefine="_RTE
-_ SETA 1" --predefine="STM32F10X_HD SETA 1" --predefine="_RTE_ SETA 1" --list=s
-tartup_stm32f103xe.lst startup_stm32f103xe.s
+o -I.\RTE\_TCD1254GFG -IC:\Users\21584\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\
+CMSIS\Core\Include -IC:\Users\21584\AppData\Local\Arm\Packs\Keil\STM32F1xx_DFP\
+2.4.0\Device\Include --predefine="__EVAL SETA 1" --predefine="__UVISION_VERSION
+ SETA 538" --predefine="_RTE_ SETA 1" --predefine="STM32F10X_HD SETA 1" --prede
+fine="_RTE_ SETA 1" --list=startup_stm32f103xe.lst startup_stm32f103xe.s
 
 
 
@@ -1459,4 +1459,4 @@ Symbol: __use_two_region_memory
       None
 Comment: __use_two_region_memory unused
 3 symbols
-426 symbols in table
+427 symbols in table

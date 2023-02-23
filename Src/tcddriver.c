@@ -34,7 +34,7 @@ static void scanstop(tcddata *t)
     HAL_GPIO_WritePin(sh_iogroup, sh_io, GPIO_PIN_SET);
     t->sh_tick  = 0;
     t->switcher = false;
-    delay_ns(t3*2);
+    delay_ns(t3);
 }
 
 
